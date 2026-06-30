@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StdWork • Standardized Work Studio v2.9</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
+        .timer-display { font-variant-numeric: tabular-nums; }
+        .industrial { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        .dashboard-card:hover { transform: translateY(-3px); }
+
+        /* ============================================================
+           COLOR SCHEMA CUSTOMIZATION
+           StdWork is permanently dark mode. Edit the :root block below
+           to change colors site-wide — no other files need changes.
+
+           --accent-color       Primary buttons, icons, highlights (amber-500 default)
+           --header-bg          Top navigation bar background
+           --border-color       Card borders, dividers, input outlines
+           --modal-outer-bg     Modal shells, input backgrounds
+           --modal-content-bg   Cards, panels, inner surfaces (zinc-800 style)
+           --text-primary       Headings, values, primary labels
+           --text-secondary     Hints, metadata, secondary labels
+           --body-bg            Page background behind all views
+           ============================================================ */
+        :root {
+            --accent-color: #f59e0b;
+            --header-bg: #18181b;
+            --border-color: #3f3f46;
+            --modal-outer-bg: #18181b;
+            --modal-content-bg: #27272a;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --body-bg: #09090b;
+        }
+        body { background-color: var(--body-bg); color: var(--text-primary); }
+
+        /* Accent + chrome */
+        #top-bar { background-color: var(--header-bg) !important; border-color: var(--border-color) !important; }
+        #top-bar .font-display { color: var(--text-primary); }
+        .bg-amber-500, .hover\:bg-amber-400 { background-color: var(--accent-color) !important; }
+        .hover\:bg-amber-500:hover { filter: brightness(0.9); }
+        #top-bar .fa-industry { color: var(--header-bg) !important; background-color: var(--accent-color) !important; }
+        #user-info .fa-user { color: var(--accent-color) !important; }
+        .dashboard-card > i.fa-solid { color: var(--accent-color) !important; }
+        .dashboard-card { border-color: var(--border-color) !important; }
+        .dashboard-card:hover { border-color: var(--accent-color) !important; }
+        #view-admin-home .bg-emerald-600 { background-color: var(--accent-color) !important; color: #111827 !important; }
+        #view-admin-home .bg-emerald-600:hover { filter: brightness(0.92); }
+
+        /* Labels + headings */
+        #view-login label, label.text-zinc-400 { color: var(--text-secondary) !important; }
+        #user-info-text, #view-login h1, .dashboard-card .font-semibold,
+        #view-admin-home h1, #view-tmo-home h1, #view-operator-home h1 { color: var(--text-primary); }
+
+        /* Header mobile overflow */
+        #header-actions { min-width: 0; }
+        #user-info-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 639px) {
+            #user-info { max-width: 7.5rem; }
+            #header-overflow-wrap { position: relative; }
+            #header-secondary.header-mobile-open {
+                display: flex !important; flex-direction: column; align-items: stretch;
+                position: absolute; right: 0; top: 100%; margin-top: 0.25rem;
+                min-width: 15rem; padding: 0.5rem; border-radius: 1rem;
+                border: 1px solid var(--border-color); background-color: var(--modal-outer-bg);
+                box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.35); z-index: 60;
+            }
+            #header-secondary.header-mobile-open .min-h-\[44px\] { width: 100%; justify-content: flex-start; }
+        }
+
+        /* Capture + TAKT surfaces */
+        #view-capture .bg-zinc-900, #view-capture .bg-zinc-950,
+        #takt-calculator-section.bg-zinc-900, #takt-calculator-section .bg-zinc-950,
+        #view-capture .bg-zinc-900.border-zinc-800, #view-capture .bg-zinc-900.border-zinc-700 {
+            background-color: var(--modal-content-bg) !important; border-color: var(--border-color) !important;
+        }
+        #view-capture label, #view-capture .text-zinc-400, #view-capture .text-zinc-500,
+        #takt-calculator-section label, #takt-calculator-section .text-zinc-400, #takt-calculator-section .text-zinc-500,
+        #view-capture .text-xs.text-zinc-400 { color: var(--text-secondary) !important; }
+        #view-capture .text-zinc-200, #view-capture .text-zinc-300, #view-capture .font-semibold,
+        #view-capture #timer-display, #view-capture #lap-count, #view-capture #total-time,
+        #view-capture #avg-cycle, #view-capture #oee-performance, #view-capture #fluct-display,
+        #takt-calculator-section .text-zinc-300 { color: var(--text-primary) !important; }
+        #view-capture input, #view-capture select, #takt-calculator-section input {
+            background-color: var(--modal-outer-bg) !important; border-color: var(--border-color) !important; color: var(--text-primary) !important;
+        }
+        #view-capture .text-emerald-400, #view-capture .text-emerald-300,
+        #takt-calculator-section .text-emerald-400, #metric-info-modal .text-emerald-400 { color: var(--accent-color) !important; }
+        #view-capture .border-emerald-800, #takt-calculator-section .border-emerald-800 {
+            border-color: color-mix(in srgb, var(--accent-color) 45%, var(--border-color)) !important;
+        }
+        #view-capture .bg-emerald-950 {
+            background-color: color-mix(in srgb, var(--accent-color) 12%, var(--modal-content-bg)) !important;
+        }
+        #staffing-or-btn, #kaizen-export-btn, #add-work-instruction-btn, #std-doc-btn-capture {
+            background-color: color-mix(in srgb, var(--border-color) 40%, var(--modal-outer-bg)) !important;
+            border-color: var(--border-color) !important; color: var(--text-primary) !important;
+        }
+        #staffing-or-btn:hover, #kaizen-export-btn:hover, #add-work-instruction-btn:hover, #std-doc-btn-capture:hover {
+            background-color: color-mix(in srgb, var(--accent-color) 22%, var(--modal-content-bg)) !important;
+            border-color: color-mix(in srgb, var(--accent-color) 45%, var(--border-color)) !important;
+        }
+
+        /* Work instructions */
+        #work-instructions-section .wi-editor {
+            color: var(--text-primary) !important; background-color: var(--modal-outer-bg) !important;
+            border-color: var(--border-color) !important; min-height: 4.5rem;
+        }
+        #work-instructions-section .wi-toolbar button { color: var(--text-secondary) !important; border-color: var(--border-color) !important; }
+        #work-instructions-section .wi-toolbar button:hover {
+            color: var(--text-primary) !important;
+            background-color: color-mix(in srgb, var(--border-color) 35%, var(--modal-content-bg)) !important;
+        }
+        #work-instructions-section .wi-image-preview { max-height: 8rem; max-width: 100%; border-radius: 0.75rem; border: 1px solid var(--border-color); }
+
+        /* Studies + role home cards */
+        #view-studies .studies-card, #view-studies .bg-zinc-900,
+        #view-admin-home .bg-zinc-900:not(.bg-emerald-600), #view-tmo-home .bg-zinc-900, #view-operator-home .bg-zinc-900 {
+            background-color: var(--modal-content-bg) !important; border-color: var(--border-color) !important;
+        }
+        #view-studies .studies-card .font-semibold, #view-studies h2 { color: var(--text-primary) !important; }
+        #view-studies label, #view-studies .text-zinc-400, #view-studies .text-zinc-500 { color: var(--text-secondary) !important; }
+        #view-studies input, #view-studies select {
+            background-color: var(--modal-outer-bg) !important; border-color: var(--border-color) !important; color: var(--text-primary) !important;
+        }
+
+        /* Line report */
+        #line-report-modal .text-zinc-400, #line-report-modal .text-zinc-500, #line-report-modal label { color: var(--text-secondary) !important; }
+        #line-report-modal .font-semibold, #line-report-modal .line-bar-label, #line-report-modal .line-bar-value { color: var(--text-primary) !important; }
+        #line-report-modal .line-scope-note {
+            background-color: color-mix(in srgb, var(--accent-color) 8%, var(--modal-content-bg)) !important;
+            border-color: var(--border-color) !important; color: var(--text-secondary) !important;
+        }
+        #line-report-chart .line-station-header {
+            font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; color: var(--accent-color) !important;
+            margin-top: 0.5rem; margin-bottom: 0.25rem; padding-top: 0.35rem; border-top: 1px solid var(--border-color);
+        }
+        #line-report-chart .line-station-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+        #line-report-chart .line-bar-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        #line-report-chart .line-bar-label { width: 7rem; font-size: 0.75rem; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #line-report-chart .line-bar-track { flex: 1; height: 1.25rem; background: var(--modal-outer-bg); border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border-color); position: relative; }
+        #line-report-chart .line-bar-fill { height: 100%; background: var(--accent-color); border-radius: 0.5rem; min-width: 2px; transition: width 0.2s ease; }
+        #line-report-chart .line-bar-fill.bottleneck { filter: brightness(0.82); }
+        #line-report-chart .line-takt-marker { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ef4444; z-index: 2; }
+        #line-report-chart .line-chart-legend { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        #line-report-chart .line-chart-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+        #line-report-chart .legend-swatch { width: 0.65rem; height: 0.65rem; border-radius: 2px; flex-shrink: 0; }
+        #line-report-summary .line-metric-pill { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; background: color-mix(in srgb, var(--accent-color) 12%, var(--modal-content-bg)); border: 1px solid var(--border-color); margin-right: 0.35rem; margin-bottom: 0.25rem; }
+
+        /* Modals */
+        #manage-modal > div, #delete-reason-modal > div, #audit-log-modal > div, #elemental-modal > div,
+        #tact-modal > div, #or-rate-modal > div, #line-report-modal > div, #copy-template-modal > div,
+        #metric-info-modal > div, #std-doc-modal > div {
+            background-color: var(--modal-outer-bg) !important; border-color: var(--border-color) !important;
+        }
+        #manage-modal .bg-zinc-900, #manage-modal .bg-zinc-950, #elemental-modal .bg-zinc-900, #elemental-modal .bg-zinc-950,
+        #tact-modal .bg-zinc-900, #tact-modal .bg-zinc-950, #or-rate-modal .bg-zinc-900, #or-rate-modal .bg-zinc-950,
+        #line-report-modal .bg-zinc-900, #line-report-modal .bg-zinc-950, #copy-template-modal .bg-zinc-950 {
+            background-color: var(--modal-content-bg) !important; border-color: var(--border-color) !important;
+        }
+        #copy-template-modal .font-semibold, #elemental-modal .font-semibold,
+        #elemental-modal #modal-timer-display, #elemental-modal #modal-obs-count { color: var(--text-primary) !important; }
+        #metric-info-modal > div { max-width: min(100%, 36rem); }
+        #metric-info-body { font-size: 1rem; line-height: 1.65; color: var(--text-primary) !important; }
+        @media (min-width: 640px) { #metric-info-body { font-size: 0.9375rem; line-height: 1.7; } }
+
+        .metric-info-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 44px; min-width: 44px; padding: 0.35rem;
+            color: inherit; opacity: 0.75; border-radius: 9999px; vertical-align: middle;
+        }
+        .metric-info-btn:hover { opacity: 1; }
+        @media (min-width: 640px) { .metric-info-btn { min-height: 32px; min-width: 32px; padding: 0.2rem; } }
+
+        #elements-table { min-width: 0; }
+        @media (max-width: 639px) { #elements-table { font-size: 0.75rem; } }
+        #takt-calculator-section .takt-input-grid > div { min-width: 0; }
+        #takt-calculator-section label { word-break: break-word; }
+        #takt-calculator-section .takt-result-value { font-size: 1.5rem; }
+        @media (min-width: 640px) { #takt-calculator-section .takt-result-value { font-size: 1.875rem; } }
+        #takt-collapse-toggle { flex-shrink: 0; }
+
+        /* Time Cycles — Element Lap indicator */
+        #cycle-element-lap-indicator {
+            background-color: color-mix(in srgb, var(--accent-color) 10%, var(--modal-content-bg));
+            border-color: color-mix(in srgb, var(--accent-color) 35%, var(--border-color)) !important;
+        }
+        #cycle-element-lap-indicator .cycle-next-label { color: var(--accent-color) !important; }
+
+        /* TACT modal — aligned with other calculator modals */
+        #tact-modal .tact-input-card {
+            background-color: var(--modal-content-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        #tact-modal .tact-result-card {
+            background-color: color-mix(in srgb, var(--accent-color) 8%, var(--modal-content-bg)) !important;
+            border-color: color-mix(in srgb, var(--accent-color) 40%, var(--border-color)) !important;
+        }
+        #tact-modal #tact-result { color: var(--accent-color) !important; }
+        #tact-modal label { color: var(--text-secondary) !important; }
+        #tact-modal .font-semibold { color: var(--text-primary) !important; }
+        #element-lap-btn:disabled { pointer-events: none; }
+
+        /* Time Cycles first-visit combo tip */
+        #cycles-combo-tip {
+            background-color: color-mix(in srgb, var(--accent-color) 8%, var(--modal-content-bg)) !important;
+            border-color: color-mix(in srgb, #10b981 40%, var(--border-color)) !important;
+        }
+        .density-compact .bg-zinc-900.rounded-3xl.p-5 { padding: 0.75rem 1rem; }
+        .density-compact table td, .density-compact table th { padding-top: 0.35rem; padding-bottom: 0.35rem; }
+        .variance-badge { font-size: 10px; padding: 1px 6px; border-radius: 9999px; }
+
+        /* Standardization Document — print-ready paper preview */
+        #std-doc-modal .std-doc-scroll {
+            background: #52525b;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        .std-doc-paper {
+            max-width: 8.5in; margin: 0 auto; padding: 0.65in 0.75in;
+            background: #fff; color: #18181b; font-family: 'Inter', system-ui, sans-serif;
+            font-size: 11pt; line-height: 1.5;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+        }
+        @media (max-width: 639px) {
+            #std-doc-modal { padding: 0 !important; align-items: stretch !important; }
+            #std-doc-modal > div {
+                max-width: none !important; max-height: 100dvh !important; height: 100dvh !important;
+                border-radius: 0 !important; border-left: none !important; border-right: none !important;
+            }
+            #std-doc-scroll { padding: 0.65rem 0.5rem 1rem !important; }
+            .std-doc-paper {
+                max-width: 100%; width: 100%; margin: 0;
+                padding: 0.85rem 0.75rem; font-size: 9.5pt;
+                box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+            }
+            .std-doc-title { font-size: 1.1rem; }
+            .std-doc-sheet-title { font-size: 0.9rem; }
+            .std-doc-header-grid, .std-doc-kpi-grid { font-size: 0.65rem; }
+            .std-doc-hdr-val { font-size: 0.72rem; }
+            .std-doc-table { min-width: 34rem; font-size: 0.68rem; }
+            .std-doc-signatures { grid-template-columns: 1fr; gap: 1rem; }
+            .std-doc-mobile-hint { display: block; }
+        }
+        .std-doc-mobile-hint {
+            display: none; font-size: 0.68rem; color: #d4d4d8; background: #3f3f46;
+            border: 1px solid #52525b; border-radius: 0.75rem; padding: 0.5rem 0.65rem;
+            margin: 0 auto 0.65rem; max-width: 8.5in; line-height: 1.45;
+        }
+        .std-doc-brand { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            border-bottom: 3px solid #f59e0b; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+        .std-doc-sheet-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600;
+            text-align: center; margin: 0 0 0.35rem; letter-spacing: 0.02em; color: #09090b; }
+        .std-doc-header-grid, .std-doc-kpi-grid { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.75rem; }
+        .std-doc-header-grid td, .std-doc-kpi-grid td { border: 1px solid #18181b; padding: 0.35rem 0.5rem; vertical-align: top; width: 33.33%; }
+        .std-doc-kpi-grid td { text-align: center; background: #fafafa; }
+        .std-doc-hdr-lbl { display: block; font-size: 0.55rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #52525b; margin-bottom: 0.15rem; }
+        .std-doc-hdr-val { display: block; font-size: 0.8rem; font-weight: 600; color: #18181b; }
+        .std-doc-note { font-size: 0.7rem; color: #71717a; margin: 0 0 0.5rem; }
+        .std-doc-type-tag { display: inline-block; font-size: 0.55rem; font-weight: 700; letter-spacing: 0.06em;
+            padding: 0.1rem 0.3rem; border-radius: 2px; background: #fef3c7; color: #92400e; margin-right: 0.25rem; }
+        .std-doc-table-bordered th, .std-doc-table-bordered td { border: 1px solid #d4d4d8; }
+        .std-doc-table .std-doc-num { text-align: center; font-weight: 600; width: 2rem; }
+        .std-doc-table .std-doc-std { color: #b45309; font-weight: 600; }
+        .std-doc-table .std-doc-remarks { font-size: 0.7rem; color: #71717a; text-align: left !important; min-width: 4rem; }
+        .std-doc-periodic-table thead th { background: #3f3f46; }
+        .std-doc-brand-mark { display: flex; align-items: center; gap: 0.5rem; }
+        .std-doc-brand-icon { width: 2rem; height: 2rem; background: #f59e0b; border-radius: 0.5rem;
+            display: flex; align-items: center; justify-content: center; color: #18181b; font-size: 1rem; }
+        .std-doc-brand-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.1rem; letter-spacing: -0.02em; }
+        .std-doc-doc-type { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #71717a; }
+        .std-doc-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 600;
+            margin: 0 0 1rem; line-height: 1.25; color: #09090b; }
+        .std-doc-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1.5rem;
+            margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: #fafafa; border: 1px solid #e4e4e7; border-radius: 0.5rem; }
+        .std-doc-meta dt { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #71717a; margin: 0; }
+        .std-doc-meta dd { font-size: 0.85rem; font-weight: 500; margin: 0.1rem 0 0.5rem; color: #18181b; }
+        .std-doc-section-title { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+            color: #f59e0b; margin: 1.25rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e4e4e7; }
+        .std-doc-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 0.5rem; }
+        .std-doc-table th { text-align: left; padding: 0.4rem 0.5rem; background: #18181b; color: #fafafa;
+            font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+        .std-doc-table th:last-child, .std-doc-table td:last-child { text-align: right; }
+        .std-doc-table td { padding: 0.45rem 0.5rem; border-bottom: 1px solid #e4e4e7; vertical-align: top; }
+        .std-doc-table tr:nth-child(even) td { background: #fafafa; }
+        .std-doc-table .std-doc-total td { font-weight: 600; background: #fef3c7 !important; border-top: 2px solid #f59e0b; }
+        .std-doc-table .mono { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+        .std-doc-wi-step { margin-bottom: 1rem; padding-left: 0.25rem; }
+        .std-doc-wi-num { display: inline-flex; align-items: center; justify-content: center;
+            width: 1.35rem; height: 1.35rem; background: #f59e0b; color: #18181b; font-size: 0.7rem;
+            font-weight: 700; border-radius: 0.25rem; margin-right: 0.5rem; vertical-align: top; }
+        .std-doc-wi-body { display: inline-block; width: calc(100% - 2rem); vertical-align: top; }
+        .std-doc-wi-body p { margin: 0 0 0.35rem; }
+        .std-doc-wi-img { max-width: 100%; max-height: 14rem; margin-top: 0.5rem; border-radius: 0.35rem; border: 1px solid #d4d4d8; }
+        .std-doc-signatures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2rem; padding-top: 1rem; }
+        .std-doc-sig-block { border-top: 1px solid #a1a1aa; padding-top: 0.35rem; }
+        .std-doc-sig-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #71717a; }
+        .std-doc-sig-line { height: 2.5rem; }
+        .std-doc-footer { margin-top: 1.5rem; font-size: 0.6rem; color: #a1a1aa; text-align: center; }
+        @media print {
+            body > *:not(#std-doc-modal) { display: none !important; }
+            #std-doc-modal { position: static !important; display: block !important; background: #fff !important; }
+            #std-doc-modal > div { max-width: none !important; max-height: none !important; height: auto !important; border: none !important; box-shadow: none !important; }
+            .std-doc-modal-chrome, .std-doc-mobile-hint { display: none !important; }
+            .std-doc-scroll { overflow: visible !important; padding: 0 !important; background: #fff !important; }
+            .std-doc-paper { box-shadow: none; padding: 0.5in; font-size: 11pt !important; max-width: 8.5in !important; width: auto !important; }
+            .std-doc-paper { overflow: visible !important; }
+            .std-doc-table { min-width: 0 !important; font-size: 0.8rem !important; }
+            .std-doc-signatures { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        body.std-doc-printing > *:not(#std-doc-modal) { display: none !important; }
+        body.std-doc-printing #std-doc-modal { position: static !important; display: block !important; background: #fff !important; inset: auto !important; }
+        body.std-doc-printing #std-doc-modal > div { max-width: none !important; max-height: none !important; height: auto !important; border: none !important; box-shadow: none !important; }
+        body.std-doc-printing .std-doc-modal-chrome, body.std-doc-printing .std-doc-mobile-hint { display: none !important; }
+        body.std-doc-printing .std-doc-scroll { overflow: visible !important; padding: 0 !important; background: #fff !important; }
+        body.std-doc-printing .std-doc-paper { box-shadow: none; padding: 0.5in; font-size: 11pt !important; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+
+    <!-- ========== TOP NAVIGATION BAR ========== -->
+    <div id="top-bar" class="border-b border-zinc-800 bg-zinc-900 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 min-h-14 flex items-center justify-between gap-2">
+            <div onclick="goToRoleHome()" class="flex items-center gap-x-2 sm:gap-x-3 cursor-pointer shrink-0 min-w-0">
+                <div class="w-8 h-8 bg-amber-500 rounded-2xl flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-industry text-zinc-950"></i>
+                </div>
+                <span class="font-display text-lg sm:text-xl tracking-tighter">StdWork</span>
+                <span class="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">v2.8</span>
+            </div>
+            <div id="header-actions" class="flex items-center gap-1 sm:gap-2 min-w-0 shrink-0">
+                <div id="user-info" onclick="goToRoleHome()" class="hidden items-center gap-x-1.5 px-2 sm:px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs sm:text-sm cursor-pointer min-w-0">
+                    <i class="fa-solid fa-user text-amber-400 shrink-0"></i>
+                    <span id="user-info-text" class="min-w-0"></span>
+                </div>
+                <button id="logout-btn" onclick="logout()" class="hidden shrink-0 min-h-[44px] min-w-[44px] px-2 sm:px-3 text-zinc-400 hover:text-white flex items-center justify-center gap-x-1 rounded-xl hover:bg-zinc-800" title="Logout" aria-label="Logout">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span class="hidden md:inline text-xs">Logout</span>
+                </button>
+                <div id="header-overflow-wrap" class="relative sm:contents shrink-0">
+                    <button id="header-overflow-toggle" type="button" onclick="toggleHeaderOverflowMenu()" class="hidden min-h-[44px] min-w-[44px] text-zinc-400 hover:text-white items-center justify-center rounded-xl hover:bg-zinc-800" aria-label="More options" title="More options">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div id="header-secondary" class="hidden sm:flex sm:items-center sm:gap-1">
+                        <button id="density-btn" onclick="toggleDensityMode()" class="hidden text-xs px-3 py-1.5 text-zinc-400 hover:text-white flex items-center gap-x-1.5 rounded-xl hover:bg-zinc-800 min-h-[44px]" title="Toggle compact density">
+                            <i class="fa-solid fa-compress-arrows-alt"></i>
+                            <span class="text-[10px] sm:inline" id="density-label">Compact</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== LOGIN VIEW ========== -->
+    <div id="view-login" class="view max-w-md mx-auto px-6 py-12">
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-amber-500 rounded-3xl mx-auto flex items-center justify-center mb-4">
+                <i class="fa-solid fa-industry text-zinc-950 text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-display tracking-tighter">StdWork</h1>
+            <p class="text-zinc-400 mt-1">Standardized Work Studio</p>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-zinc-400 mb-1.5">YOUR NAME</label>
+                <input id="login-name" type="text" value="TMO02" class="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg">
+            </div>
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-zinc-400 mb-1.5">ROLE</label>
+                <select id="login-role" onchange="toggleAssignedCellField()" class="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg">
+                    <option value="TMO">TMO / Engineer</option>
+                    <option value="ADMIN">ADMIN / Supervisor</option>
+                    <option value="OPERATOR">OPERATOR</option>
+                </select>
+            </div>
+            <div id="assigned-cell-field" class="mb-6" style="display: none;">
+                <label class="block text-xs font-medium text-zinc-400 mb-1.5">ASSIGNED CELL (TMO only)</label>
+                <select id="login-assigned-cell" class="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg"></select>
+            </div>
+            <button onclick="performLogin()" class="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold py-4 rounded-2xl text-lg">Sign In</button>
+        </div>
+    </div>
+
+    <!-- ========== ADMIN DASHBOARD ========== -->
+    <div id="view-admin-home" class="view hidden max-w-5xl mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-display">Admin Dashboard</h1>
+            <p class="text-zinc-400">Full system control • Audit Log &amp; Recovery</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div onclick="openManageModal()" class="dashboard-card bg-zinc-900 border border-zinc-700 hover:border-emerald-500 rounded-3xl p-5 cursor-pointer">
+                <i class="fa-solid fa-cogs text-emerald-400 text-2xl mb-3"></i>
+                <div class="font-semibold">Manage Cells &amp; TMOs</div>
+            </div>
+            <div onclick="showAuditLog()" class="dashboard-card bg-zinc-900 border border-amber-500/70 hover:border-amber-500 rounded-3xl p-5 cursor-pointer">
+                <i class="fa-solid fa-history text-amber-400 text-2xl mb-3"></i>
+                <div class="font-semibold">Audit Log &amp; Recovery</div>
+            </div>
+            <div onclick="switchView('studies')" class="dashboard-card bg-zinc-900 border border-zinc-700 hover:border-emerald-500 rounded-3xl p-5 cursor-pointer">
+                <i class="fa-solid fa-folder-open text-emerald-400 text-2xl mb-3"></i>
+                <div class="font-semibold">All Studies</div>
+            </div>
+            <div onclick="showGlobalSettings()" class="dashboard-card bg-zinc-900 border border-zinc-700 hover:border-emerald-500 rounded-3xl p-5 cursor-pointer">
+                <i class="fa-solid fa-sliders-h text-emerald-400 text-2xl mb-3"></i>
+                <div class="font-semibold">Global Settings</div>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="startNewStudyAsAdmin()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-4 rounded-2xl flex items-center gap-x-2 text-lg">
+                <i class="fa-solid fa-plus"></i> <span>Create New Study (Any Cell)</span>
+            </button>
+            <button onclick="exportAllStudiesJSON()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-semibold px-6 py-4 rounded-2xl flex items-center gap-x-2 text-lg border border-zinc-600">
+                <i class="fa-solid fa-download"></i> <span>Export All (JSON)</span>
+            </button>
+            <button onclick="openLineReportModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-6 py-4 rounded-2xl flex items-center gap-x-2 text-lg border border-zinc-600 min-h-[44px]">
+                <i class="fa-solid fa-chart-bar"></i> <span>Line Balance &amp; Reporting</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== TMO DASHBOARD ========== -->
+    <div id="view-tmo-home" class="view hidden max-w-5xl mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-display">TMO Dashboard</h1>
+            <p class="text-zinc-400">Logged in as <span id="tmo-name" class="font-medium text-white"></span> • Assigned to <span id="tmo-cell" class="font-medium text-amber-400"></span></p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            <div onclick="startNewStudyAsTMO()" class="dashboard-card bg-zinc-900 border border-amber-500/70 hover:border-amber-500 rounded-3xl p-6 cursor-pointer">
+                <i class="fa-solid fa-plus text-amber-400 text-3xl mb-4"></i>
+                <div class="font-semibold text-xl">Create New Std Work</div>
+            </div>
+            <div onclick="switchView('studies')" class="dashboard-card bg-zinc-900 border border-zinc-700 hover:border-amber-500 rounded-3xl p-6 cursor-pointer">
+                <i class="fa-solid fa-folder-open text-amber-400 text-3xl mb-4"></i>
+                <div class="font-semibold text-xl">My Studies</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== OPERATOR DASHBOARD ========== -->
+    <div id="view-operator-home" class="view hidden max-w-5xl mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-display">Operator View</h1>
+            <p class="text-zinc-400">Read-only access</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div onclick="switchView('studies')" class="dashboard-card bg-zinc-900 border border-blue-500/70 hover:border-blue-500 rounded-3xl p-6 cursor-pointer">
+                <i class="fa-solid fa-book text-blue-400 text-3xl mb-4"></i>
+                <div class="font-semibold text-xl">Browse All Standards (Read-only)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CAPTURE / STUDY VIEW ========== -->
+    <div id="view-capture" class="view hidden max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        <div id="role-warning-banner" class="hidden mb-4 px-4 py-2.5 rounded-2xl text-sm border"></div>
+        
+        <!-- Study Header -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div class="sm:col-span-2 lg:col-span-2">
+                <label class="block text-xs font-medium text-zinc-400 mb-1">AREA / CELL</label>
+                <select id="area-select" onchange="onAreaChange()" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg min-h-[48px]"></select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">STATION</label>
+                <input id="station-input" type="text" placeholder="e.g. Station 3, Sub-assembly A" oninput="onStationChange()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg min-h-[48px]">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">DATE</label>
+                <input id="study-date" type="date" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg min-h-[48px]">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">SHIFT</label>
+                <select id="study-shift" onchange="onShiftChange()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg min-h-[48px]">
+                    <option value="Day">Day</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Night">Night</option>
+                    <option value="Custom">Custom</option>
+                </select>
+            </div>
+        </div>
+        <div id="study-shift-custom-wrap" class="hidden mb-4 max-w-md">
+            <label class="block text-xs font-medium text-zinc-400 mb-1">CUSTOM SHIFT LABEL</label>
+            <input id="study-shift-custom" type="text" placeholder="e.g. Weekend A, 12-hr Front Half" oninput="saveToStorage()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-base min-h-[48px]">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-xs font-medium text-zinc-400 mb-1">OPERATION / JOB NAME</label>
+            <input id="study-name" type="text" placeholder="e.g. Hardware Kits Assembly" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">OBSERVED OPERATOR</label>
+                <input id="study-observed-operator" type="text" placeholder="e.g. J. Smith" oninput="onCaptureMetaChange()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-base min-h-[48px]">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">PART NUMBER / SKU</label>
+                <input id="study-part-number" type="text" placeholder="e.g. ASM-02-KIT-A" oninput="onCaptureMetaChange()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-base min-h-[48px]">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">TARGET OUTPUT / LINE SPEED</label>
+                <input id="study-target-output" type="number" min="0" step="1" placeholder="e.g. 240" oninput="onCaptureMetaChange()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-2xl px-4 py-3 text-base font-mono min-h-[48px]">
+            </div>
+        </div>
+
+        <!-- Workflow Mode + Allowance -->
+        <div class="flex flex-col sm:flex-row sm:items-end gap-4 mb-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-x-3">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1 flex items-center gap-1">ALLOWANCE %
+                            <button type="button" onclick="showMetricInfo('allowance')" class="metric-info-btn text-zinc-500" aria-label="What is allowance?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                        </label>
+                        <input id="allowance-input" type="number" value="12" min="0" max="50" step="1" onchange="updateStandardTimes()" class="w-24 bg-zinc-900 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-2 text-lg font-mono text-center">
+                    </div>
+                    <div class="text-xs text-zinc-500 pb-1">Standard Time = Avg × (1 + allowance%)</div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="inline-flex bg-zinc-900 border border-zinc-700 rounded-2xl p-1 text-sm w-full">
+                    <button onclick="setWorkflowMode('elements')" id="mode-elements" class="flex-1 px-5 py-2.5 rounded-xl font-semibold bg-amber-500 text-zinc-950 flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-list-check"></i> <span>Define Elements</span>
+                    </button>
+                    <button onclick="setWorkflowMode('cycles')" id="mode-cycles" class="flex-1 px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-x-2 bg-emerald-700 text-white">
+                        <i class="fa-solid fa-sync-alt"></i> <span>Time Cycles</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <button onclick="openTACTModal()" class="flex items-center gap-x-2 px-4 py-2 text-sm bg-emerald-900 hover:bg-emerald-800 text-emerald-300 rounded-2xl border border-emerald-800 w-full sm:w-auto justify-center min-h-[44px]" title="Open customer-demand TACT time calculator" aria-label="Open TACT Time calculator">
+                <i class="fa-solid fa-tachometer-alt" aria-hidden="true"></i> <span>TACT Time</span>
+            </button>
+            <button id="copy-template-btn" onclick="openCopyTemplateModal()" class="hidden flex items-center gap-x-2 px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-2xl border border-zinc-700 w-full sm:w-auto justify-center">
+                <i class="fa-solid fa-copy"></i> <span>Copy Elements from Previous</span>
+            </button>
+        </div>
+
+        <div id="mode-instructions" class="mb-4 px-4 py-3 rounded-2xl text-sm border bg-zinc-900 border-zinc-700 text-zinc-300"></div>
+
+        <!-- Time Cycles: first-visit tip (Element Lap + Record Cycle) -->
+        <div id="cycles-combo-tip" class="hidden mb-4 px-4 py-3 rounded-2xl text-sm border border-emerald-700/50 bg-emerald-950/50 text-emerald-100 flex flex-col sm:flex-row gap-3 sm:items-start sm:justify-between" role="note">
+            <div class="flex gap-2.5 min-w-0">
+                <i class="fa-solid fa-lightbulb text-amber-400 shrink-0 mt-0.5 text-base" aria-hidden="true"></i>
+                <p id="cycles-combo-tip-text" class="leading-relaxed text-sm"></p>
+            </div>
+            <button type="button" onclick="dismissCyclesComboTip()" class="shrink-0 self-end sm:self-start px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold min-h-[44px] min-w-[44px]" title="Dismiss this tip — it won't show again" aria-label="Got it — dismiss Time Cycles tip">Got it</button>
+        </div>
+
+        <!-- ========== TIMER SECTION ========== -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 sm:p-8 mb-5 industrial">
+            <div class="text-center">
+                <div id="timer-display" class="timer-display font-mono text-[44px] sm:text-[76px] md:text-[100px] font-semibold tracking-[-2px] text-white leading-none">00:00.00</div>
+                <div class="text-zinc-500 text-xs sm:text-sm tracking-[3px] mt-1">MIN : SEC . 1/100s</div>
+            </div>
+        </div>
+
+        <!-- Time Cycles: next element indicator (Element Lap target) -->
+        <div id="cycle-element-lap-indicator" class="hidden mb-4 px-4 py-3 rounded-2xl text-sm border border-amber-500/40 bg-amber-950/30 text-zinc-300" role="status" aria-live="polite">
+            <span class="cycle-next-label text-amber-400 font-semibold">Next:</span>
+            Element <span id="cycle-next-element-num">1</span> of <span id="cycle-next-element-total">0</span>
+            — <span id="cycle-next-element-name" class="font-medium text-white">—</span>.
+            <span id="cycle-next-element-status" class="block sm:inline sm:ml-1 text-xs text-zinc-400 mt-1 sm:mt-0">Element Lap records a split observation to this element.</span>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="control-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <button id="start-pause-btn" onclick="toggleStartPause()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xl py-4 px-8 rounded-2xl flex items-center justify-center gap-x-3 min-h-[52px]" title="Start or pause the main stopwatch" aria-label="Start or pause main timer">
+                <i class="fa-solid fa-play mr-2" aria-hidden="true"></i> <span id="start-pause-text">START</span>
+            </button>
+            <button id="element-lap-btn" onclick="handleElementLapInCycles()" class="hidden bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-lg sm:text-xl py-4 px-6 rounded-2xl flex items-center justify-center gap-x-2 min-h-[52px]" title="Record split time to the next element (does not reset the cycle timer)" aria-label="Element Lap — record observation for next element">
+                <i class="fa-solid fa-stopwatch" aria-hidden="true"></i> <span>ELEMENT LAP</span>
+            </button>
+            <button id="lap-btn" onclick="handleLapButton()" class="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-lg sm:text-xl py-4 px-6 rounded-2xl flex items-center justify-center gap-x-2 min-h-[52px]" title="Split and define the next work element" aria-label="Element Lap — split next element">
+                <i class="fa-solid fa-flag mr-1" aria-hidden="true"></i> <span id="lap-btn-text">ELEMENT LAP</span>
+            </button>
+            <button id="cycle-reset-btn" onclick="cycleReset()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-x-2 text-lg border border-zinc-600 min-h-[52px]" title="Reset main timer to zero without deleting saved cycles or observations" aria-label="Cycle Reset — clear main timer">
+                <i class="fa-solid fa-redo" aria-hidden="true"></i> <span>Cycle Reset</span>
+            </button>
+        </div>
+
+        <!-- ========== STATS + OEE + FLUCT (Enhanced) ========== -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-center">
+                <div class="text-xs text-zinc-400">ELEMENTS / CYCLES</div>
+                <div id="lap-count" class="text-3xl font-semibold">0</div>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-center">
+                <div class="text-xs text-zinc-400">TOTAL OBSERVED</div>
+                <div id="total-time" class="text-3xl font-semibold font-mono">00:00.00</div>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-center">
+                <div class="text-xs text-zinc-400 flex items-center justify-center gap-0.5">AVG CYCLE / WACT
+                    <button type="button" onclick="showMetricInfo('wact')" class="metric-info-btn text-zinc-500" aria-label="What is WACT?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                </div>
+                <div id="avg-cycle" class="text-2xl sm:text-3xl font-semibold font-mono">—</div>
+            </div>
+            <!-- OEE / Performance Card -->
+            <div class="bg-emerald-950 border border-emerald-800 rounded-2xl p-4 text-center">
+                <div class="text-xs text-emerald-400 tracking-widest flex items-center justify-center gap-0.5">PERFORMANCE %
+                    <button type="button" onclick="showMetricInfo('performance')" class="metric-info-btn" aria-label="What is Performance %?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                </div>
+                <div id="oee-performance" class="text-2xl sm:text-3xl font-semibold font-mono text-emerald-400">—</div>
+                <div id="oee-detail" class="text-[10px] text-emerald-400 mt-0.5">This station vs Takt</div>
+            </div>
+            <!-- FLUCT Card (Prominent) -->
+            <div class="bg-zinc-900 border border-emerald-800 rounded-2xl p-4 text-center col-span-2 sm:col-span-1">
+                <div class="text-xs text-emerald-400 flex items-center justify-center gap-0.5">FLUCT (Max-Min)
+                    <button type="button" onclick="showMetricInfo('fluct')" class="metric-info-btn" aria-label="What is FLUCT?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                </div>
+                <div id="fluct-display" class="text-xl sm:text-2xl font-semibold font-mono text-emerald-400">—</div>
+                <div id="fluct-pct" class="text-[10px] text-emerald-400" title="FLUCT % = (Max − Min) ÷ Avg × 100"></div>
+            </div>
+        </div>
+
+        <!-- TAKT / WACT Calculator -->
+        <div id="takt-calculator-section" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 sm:p-5 mb-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                <div class="font-semibold flex items-center gap-x-2 flex-wrap min-w-0">
+                    <i class="fa-solid fa-tachometer-alt text-emerald-400"></i> TAKT &amp; WACT Calculator
+                    <button type="button" onclick="showMetricInfo('takt')" class="metric-info-btn text-emerald-400" aria-label="What is Takt?"><i class="fa-solid fa-info-circle"></i></button>
+                    <button type="button" id="takt-collapse-toggle" onclick="toggleTaktCalculatorInputs()" class="min-h-[44px] min-w-[44px] px-2 text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-800 flex items-center justify-center" aria-label="Show or hide calculator inputs" title="Show/Hide inputs">
+                        <i id="takt-collapse-icon" class="fa-solid fa-chevron-down text-sm"></i>
+                    </button>
+                </div>
+                <button type="button" id="staffing-or-btn" onclick="openORRateModal()" class="flex items-center justify-center gap-x-2 px-4 py-2.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-2xl border border-zinc-700 min-h-[44px] w-full sm:w-auto shrink-0">
+                    <i class="fa-solid fa-users"></i> <span>Staffing &amp; OR% Calculator</span>
+                </button>
+            </div>
+            <div id="takt-inputs-collapsible">
+            <p class="text-xs text-zinc-500 mb-3 leading-relaxed border-l-2 border-emerald-800/60 pl-3">
+                <strong class="text-zinc-400">Station process capability</strong> — TAKT Time = Available productive minutes ÷ Customer demand. Compare <em>this station&rsquo;s</em> study WACT to that target. These metrics describe capability at the station being studied, not overall line performance. Staffing performance (OR%) is calculated separately.
+            </p>
+            <div class="takt-input-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">CUSTOMER DEMAND (units per shift)</label>
+                    <div class="flex items-center gap-x-2 min-w-0">
+                        <input id="takt-demand" type="number" value="240" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-3 sm:px-4 py-2.5 text-base sm:text-lg font-mono text-center min-h-[48px]" oninput="calculateTAKT()">
+                        <span class="text-xs text-zinc-500 shrink-0 w-10">units</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">SHIFT LENGTH (hours)</label>
+                    <div class="flex items-center gap-x-2 min-w-0">
+                        <input id="takt-shift-hours" type="number" value="8" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-3 sm:px-4 py-2.5 text-base sm:text-lg font-mono text-center min-h-[48px]" oninput="calculateTAKT()">
+                        <span class="text-xs text-zinc-500 shrink-0 w-10">hrs</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">BREAKS + NVA TIME (minutes)</label>
+                    <div class="flex items-center gap-x-2 min-w-0">
+                        <input id="takt-breaks-min" type="number" value="45" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-3 sm:px-4 py-2.5 text-base sm:text-lg font-mono text-center min-h-[48px]" oninput="calculateTAKT()">
+                        <span class="text-xs text-zinc-500 shrink-0 w-10">min</span>
+                    </div>
+                    <p class="text-[10px] text-zinc-500 mt-1 leading-snug">Breaks, meetings, changeovers, training, etc.</p>
+                </div>
+            </div>
+            <div class="bg-zinc-950/60 border border-zinc-800 rounded-2xl px-4 py-3 mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm">
+                <div class="text-zinc-400 flex flex-wrap items-center gap-1">
+                    <span class="text-zinc-300 font-medium">Available Work Time:</span>
+                    <button type="button" onclick="showMetricInfo('availableWorkTime')" class="metric-info-btn text-zinc-500 -ml-1" aria-label="What is available work time?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                    <span id="takt-available-min" class="font-mono font-semibold text-emerald-400">—</span> min
+                </div>
+                <div id="takt-available-formula" class="text-xs text-zinc-500 font-mono break-words">= (shift hours × 60) – breaks/NVA</div>
+            </div>
+            </div>
+            <p class="text-[10px] text-zinc-500 mb-3 leading-snug">Per-station signals only. Combine multiple station studies in <strong class="text-zinc-400">Line Balance &amp; Reporting</strong> for true line TACT, balance, and management metrics.</p>
+            <div id="takt-metrics-row" class="grid grid-cols-1 min-[420px]:grid-cols-3 gap-3">
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+                    <div class="text-[10px] text-zinc-500 tracking-widest flex items-center justify-center gap-0.5">TAKT TIME
+                        <button type="button" onclick="showMetricInfo('takt')" class="metric-info-btn text-zinc-500" aria-label="What is Takt time?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                    </div>
+                    <div id="takt-time-display" class="takt-result-value font-mono font-semibold text-emerald-400 mt-1 break-words">—</div>
+                    <div class="text-[10px] sm:text-xs text-zinc-500 leading-snug">sec/unit</div>
+                </div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+                    <div class="text-[10px] text-zinc-500 tracking-widest flex items-center justify-center gap-0.5">CURRENT WACT
+                        <button type="button" onclick="showMetricInfo('wactResult')" class="metric-info-btn text-zinc-500" aria-label="What is current WACT?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                    </div>
+                    <div id="wact-display" class="takt-result-value font-mono font-semibold mt-1 break-words">—</div>
+                    <div class="text-[10px] sm:text-xs text-zinc-500 leading-snug">from your study</div>
+                </div>
+                <div class="bg-zinc-950 border border-emerald-800 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+                    <div class="text-[10px] text-emerald-400 tracking-widest flex items-center justify-center gap-0.5">HEADROOM TO TAKT
+                        <button type="button" onclick="showMetricInfo('headroom')" class="metric-info-btn" aria-label="What is headroom?"><i class="fa-solid fa-info-circle text-sm"></i></button>
+                    </div>
+                    <div id="takt-headroom" class="takt-result-value font-mono font-semibold mt-1 text-emerald-400 break-words">—</div>
+                    <div id="takt-status-text" class="text-[10px] sm:text-xs mt-0.5 font-medium leading-snug"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ELEMENTS TABLE + KAIZEN EXPORT ========== -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div class="font-semibold flex items-center gap-x-2">Elements &amp; Times</div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="wact-contrib-toggle" onclick="toggleWactContribution()" class="flex items-center gap-x-1.5 px-3 py-1.5 text-xs bg-zinc-800 text-zinc-300 rounded-xl border border-zinc-700 min-h-[44px]" title="Show each regular element's share of total WACT" aria-label="Toggle WACT contribution bars" aria-pressed="false">
+                        <i class="fa-solid fa-chart-bar"></i> <span class="hidden sm:inline">WACT %</span>
+                    </button>
+                    <button id="kaizen-export-btn" onclick="exportKaizenReport()" class="flex items-center gap-x-2 px-3 py-1.5 text-xs bg-zinc-800 hover:bg-emerald-600 hover:text-white rounded-xl border border-zinc-700 min-h-[44px]" title="Download Kaizen CSV with element times and variability" aria-label="Kaizen export CSV">
+                        <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Kaizen Export</span>
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="elements-table" class="w-full text-xs sm:text-sm">
+                    <thead class="bg-zinc-950 text-[10px] sm:text-xs text-zinc-400">
+                        <tr>
+                            <th class="text-left py-2 px-2 sm:py-3 sm:px-5 w-8 sm:w-10">#</th>
+                            <th class="text-left py-2 px-2 sm:py-3 sm:px-5">ELEMENT</th>
+                            <th class="hidden sm:table-cell text-left py-2 px-2 sm:py-3 sm:px-5 w-24" title="Periodic or change-over elements are excluded from WACT">TYPE</th>
+                            <th class="hidden sm:table-cell text-left py-2 px-2 sm:py-3 sm:px-5">SPLIT</th>
+                            <th class="hidden md:table-cell text-left py-2 px-2 sm:py-3 sm:px-5">LOW / HIGH</th>
+                            <th class="text-left py-2 px-2 sm:py-3 sm:px-5">STD</th>
+                            <th class="hidden sm:table-cell text-left py-2 px-2 sm:py-3 sm:px-5 w-28">
+                                <span class="inline-flex items-center gap-0.5">FLUCT %
+                                    <button type="button" onclick="showMetricInfo('variance')" class="metric-info-btn text-zinc-500" aria-label="What is FLUCT %?"><i class="fa-solid fa-info-circle"></i></button>
+                                </span>
+                            </th>
+                            <th class="text-left py-2 px-2 sm:py-3 sm:px-5 w-14 sm:w-20"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="laps-body" class="divide-y divide-zinc-800"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Periodic & Change-over Work (separate from WACT) -->
+        <div id="periodic-work-section" class="bg-zinc-900 border border-amber-500/30 rounded-3xl mb-5 overflow-hidden">
+            <div class="px-5 py-3 border-b border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div>
+                    <div class="font-semibold flex items-center gap-x-2">
+                        <i class="fa-solid fa-arrows-rotate text-amber-400"></i>
+                        <span>Periodic &amp; Change-over Work</span>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 mt-0.5">Timed separately from regular elements — excluded from WACT</div>
+                </div>
+                <div id="periodic-add-btns" class="flex gap-2">
+                    <button type="button" onclick="addPeriodicWorkItem('periodic')" class="flex items-center gap-x-1.5 px-3 py-2 text-xs bg-zinc-800 hover:bg-amber-500/20 border border-zinc-700 rounded-xl min-h-[44px]" title="Add periodic / non-regular work item" aria-label="Add periodic work">
+                        <i class="fa-solid fa-plus"></i> Periodic
+                    </button>
+                    <button type="button" onclick="addPeriodicWorkItem('changeover')" class="flex items-center gap-x-1.5 px-3 py-2 text-xs bg-zinc-800 hover:bg-amber-500/20 border border-zinc-700 rounded-xl min-h-[44px]" title="Add tool change or change-over item" aria-label="Add change-over">
+                        <i class="fa-solid fa-plus"></i> Change-over
+                    </button>
+                </div>
+            </div>
+            <div id="periodic-work-list" class="px-5 py-3 text-sm"></div>
+        </div>
+
+        <!-- Full Cycle Observations (Time Cycles documentation) -->
+        <div id="cycle-observations-section" class="hidden bg-zinc-900 border border-zinc-800 rounded-3xl p-5 mb-5">
+            <div class="flex justify-between items-center mb-3">
+                <div class="font-semibold">Full Cycle Observations</div>
+                <div class="text-xs text-zinc-400" id="cycle-count">0 cycles</div>
+            </div>
+            <div id="cycle-list" class="text-sm font-mono max-h-[160px] overflow-auto mb-3"></div>
+            <div id="cycle-standard-summary" class="text-xs bg-zinc-950 border border-emerald-800 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                    <span class="text-emerald-400">Avg Cycle:</span> <span id="cycle-avg-time" class="font-mono font-semibold"></span>
+                </div>
+                <div>
+                    <span class="text-emerald-400">WACT / Standard Cycle (with allowance):</span>
+                    <span id="cycle-standard-time" class="font-mono font-semibold text-emerald-400"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Instructions (optional, below timing data) -->
+        <div id="work-instructions-section" class="bg-zinc-900 border border-zinc-800 rounded-3xl mb-5 overflow-hidden">
+            <button type="button" id="work-instructions-header" onclick="toggleWorkInstructionsSection()" class="w-full flex justify-between items-center px-5 py-3 border-b border-zinc-800 min-h-[52px] text-left">
+                <div class="font-semibold flex items-center gap-x-2">
+                    <i class="fa-solid fa-list-check text-emerald-400"></i>
+                    <span>Work Instructions</span>
+                    <span class="text-xs text-zinc-500 font-normal">(optional)</span>
+                </div>
+                <span id="work-instructions-collapse-icon" class="text-zinc-400 min-h-[44px] min-w-[44px] flex items-center justify-center"><i class="fa-solid fa-chevron-down text-sm"></i></span>
+            </button>
+            <div id="work-instructions-body" class="hidden p-5">
+                <p class="text-[10px] text-zinc-500 mb-3 leading-snug">Step-by-step operator instructions with optional images. Images are stored as base64 in browser storage — keep photos small to avoid filling local storage.</p>
+                <div id="work-instructions-list" class="space-y-4 mb-4"></div>
+                <button type="button" id="add-work-instruction-btn" onclick="addWorkInstruction()" class="flex items-center justify-center gap-x-2 px-4 py-2.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-2xl border border-zinc-700 min-h-[44px] w-full sm:w-auto">
+                    <i class="fa-solid fa-plus"></i> Add Instruction
+                </button>
+            </div>
+        </div>
+
+        <div id="finalize-section" class="hidden bg-zinc-900 border border-amber-500/30 rounded-3xl p-5">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <div class="font-semibold">Ready to save this study?</div>
+                    <div class="text-xs text-zinc-400">Standard times + history will be saved.</div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <button id="std-doc-btn-capture" type="button" onclick="openStandardizationDocumentFromCapture()" class="flex items-center justify-center gap-x-2 px-5 py-3 text-sm rounded-2xl border border-zinc-700 min-h-[44px]" title="Preview printable Standardization Document (Process Capacity + Work Instructions)" aria-label="Generate Standardization Document">
+                        <i class="fa-solid fa-file-lines"></i> Generate Standardization Document
+                    </button>
+                    <button onclick="finalizeAndSaveStudy()" class="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-8 py-3 rounded-2xl min-h-[44px]">FINALIZE &amp; SAVE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STUDIES LIST VIEW ========== -->
+    <div id="view-studies" class="view hidden max-w-6xl mx-auto px-6 py-6">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end gap-3 flex-1 min-w-0">
+                <h2 class="text-2xl font-display shrink-0">Saved Studies</h2>
+                <div class="flex flex-col sm:flex-row gap-2 flex-1 max-w-xl">
+                    <div class="flex-1 min-w-[10rem]">
+                        <label class="block text-[10px] text-zinc-500 mb-1 tracking-widest">FILTER BY AREA</label>
+                        <select id="studies-area-filter" onchange="filterStudiesList()" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-2.5 text-sm min-h-[44px]">
+                            <option value="">All Areas</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[10rem]">
+                        <label class="block text-[10px] text-zinc-500 mb-1 tracking-widest">SEARCH</label>
+                        <div class="relative">
+                            <input id="studies-search" type="text" placeholder="Search..." oninput="filterStudiesList()" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 rounded-2xl pl-10 pr-4 py-2.5 text-sm min-h-[44px]">
+                            <i class="fa-solid fa-search absolute left-4 top-3 text-zinc-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 shrink-0">
+                <button onclick="exportVisibleStudiesJSON()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-semibold px-5 py-2.5 rounded-2xl flex items-center gap-x-2 border border-zinc-600 min-h-[44px]" title="Export all studies currently visible in this list (respects area filter and search)">
+                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Export All (JSON)</span>
+                </button>
+                <button id="studies-line-report-btn" onclick="openLineReportModal()" class="hidden bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-5 py-2.5 rounded-2xl flex items-center gap-x-2 border border-zinc-600 min-h-[44px]">
+                    <i class="fa-solid fa-chart-bar"></i> <span class="hidden sm:inline">Line Balance &amp; Reporting</span>
+                </button>
+            </div>
+        </div>
+        <div id="studies-list"></div>
+    </div>
+
+    <!-- ========== MODALS (Delete Reason, Audit Log, etc.) ========== -->
+    <!-- Delete Reason Modal -->
+    <div id="delete-reason-modal" onclick="if (event.target.id === 'delete-reason-modal') closeDeleteReasonModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[420px]">
+            <div class="px-6 py-4 border-b border-zinc-700">
+                <div class="font-semibold text-xl">Delete Study</div>
+                <div class="text-xs text-zinc-400">This will move the study to the Admin Audit Log for recovery.</div>
+            </div>
+            <div class="p-6">
+                <label class="block text-xs font-medium text-zinc-400 mb-1.5">REASON FOR DELETION (required)</label>
+                <textarea id="delete-reason-input" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-sm h-24" placeholder="e.g. Duplicate entry, study superseded by ASM05-042..."></textarea>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end gap-3">
+                <button onclick="closeDeleteReasonModal()" class="px-6 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700">Cancel</button>
+                <button onclick="confirmDeleteWithReason()" class="px-6 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold">Delete Study</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Log Modal -->
+    <div id="audit-log-modal" onclick="if (event.target.id === 'audit-log-modal') closeAuditLogModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[820px] max-h-[85vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-center flex-shrink-0">
+                <div>
+                    <div class="text-amber-400 text-xs tracking-widest">ADMIN AUDIT LOG</div>
+                    <div class="font-semibold text-xl">Deleted Studies &amp; Recovery</div>
+                </div>
+                <button onclick="closeAuditLogModal()" class="text-3xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-6 overflow-auto flex-1" id="audit-log-content"></div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end flex-shrink-0">
+                <button onclick="closeAuditLogModal()" class="px-8 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== ELEMENTAL OBSERVATION MODAL ========== -->
+    <div id="elemental-modal" onclick="if (event.target.id === 'elemental-modal') closeElementalModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[680px]">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
+                <div>
+                    <div id="modal-element-subtitle" class="text-amber-400 text-xs tracking-widest">ELEMENTAL TIME STUDY</div>
+                    <div id="modal-element-name" class="font-semibold text-xl"></div>
+                </div>
+                <button onclick="closeElementalModal()" class="text-3xl text-zinc-400 hover:text-white leading-none min-h-[44px] min-w-[44px] flex items-center justify-center" title="Close elemental timer" aria-label="Close elemental timer">×</button>
+            </div>
+            <div class="p-6">
+                <div class="text-xs text-zinc-400 mb-4 px-1"><strong>How to use:</strong> START when element begins → RECORD OBSERVATION when complete. Multiple observations = reliable avg &amp; std dev.</div>
+                
+                <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 mb-4 text-center">
+                    <div id="modal-timer-display" class="timer-display font-mono text-[64px] sm:text-[80px] font-semibold tracking-[-3px]">00:00.00</div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] text-zinc-500 tracking-widest">OBS</div>
+                        <div id="modal-obs-count" class="font-mono text-2xl font-semibold text-white">0</div>
+                    </div>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] text-zinc-500 tracking-widest">AVG</div>
+                        <div id="modal-avg" class="font-mono text-2xl font-semibold text-emerald-400">—</div>
+                    </div>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] text-zinc-500 tracking-widest">STD DEV</div>
+                        <div id="modal-stddev" class="font-mono text-2xl font-semibold text-amber-400">—</div>
+                    </div>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] text-zinc-500 tracking-widest">MIN / MAX</div>
+                        <div id="modal-minmax" class="font-mono text-sm font-semibold text-zinc-300 leading-tight">— / —</div>
+                    </div>
+                </div>
+
+                <div id="modal-standard-row" class="hidden mb-4 px-1">
+                    <div class="text-xs text-emerald-400">STANDARD TIME (Avg + Allowance)</div>
+                    <div id="modal-standard-time" class="font-mono text-3xl font-semibold text-emerald-400"></div>
+                </div>
+
+                <div class="flex gap-3 mb-5">
+                    <button onclick="toggleModalTimer()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-x-2 min-h-[52px]" title="Start or pause elemental timer" aria-label="Start or pause elemental timer">
+                        <i class="fa-solid fa-play mr-2" id="modal-play-icon" aria-hidden="true"></i> <span id="modal-start-pause-text">START</span>
+                    </button>
+                    <button type="button" onclick="recordElementalObservation()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold py-4 rounded-2xl flex items-center justify-center gap-x-2 min-h-[52px]" title="Save current elemental time as an observation" aria-label="Record elemental observation">
+                        <span>RECORD OBSERVATION</span>
+                    </button>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                    <div class="text-xs text-zinc-400 mb-2 px-1">OBSERVATIONS</div>
+                    <div id="modal-obs-list" class="max-h-[180px] overflow-auto text-sm font-mono"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end">
+                <button onclick="closeElementalModal()" class="px-8 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 min-h-[44px]" title="Close and return to study" aria-label="Done — close elemental timer">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TACT TIME MODAL (detailed) ========== -->
+    <div id="tact-modal" onclick="if (event.target.id === 'tact-modal') closeTACTModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[520px] max-h-[90vh] overflow-y-auto flex flex-col">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-start gap-3 flex-shrink-0">
+                <div>
+                    <div class="text-emerald-400 text-xs tracking-widest">LEAN / SIX SIGMA</div>
+                    <div class="font-semibold text-xl">TACT Time Calculator</div>
+                </div>
+                <button onclick="closeTACTModal()" class="text-3xl text-zinc-400 hover:text-white leading-none min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0" title="Close TACT calculator" aria-label="Close TACT calculator">×</button>
+            </div>
+            <div class="p-6 flex-1">
+                <p class="text-xs text-zinc-400 mb-5 leading-relaxed">TACT = Available Work Time ÷ Customer Demand. Independent customer-driven target pace — separate from observed WACT.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div class="tact-input-card bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                        <label class="block text-xs font-medium text-zinc-400 mb-2">CUSTOMER DEMAND</label>
+                        <div class="flex items-center gap-x-2">
+                            <input id="tact-demand-input" type="number" value="240" min="1" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-xl font-mono text-center min-h-[52px]" oninput="calculateTACTOnly()" aria-label="Customer demand in units">
+                            <span class="text-sm text-zinc-500 shrink-0">units</span>
+                        </div>
+                    </div>
+                    <div class="tact-input-card bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                        <label class="block text-xs font-medium text-zinc-400 mb-2">AVAILABLE WORK TIME</label>
+                        <div class="flex items-center gap-x-2">
+                            <input id="tact-available-min" type="number" value="435" min="1" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-xl font-mono text-center min-h-[52px]" oninput="calculateTACTOnly()" aria-label="Available work time in minutes">
+                            <span class="text-sm text-zinc-500 shrink-0">min</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500 mt-2 leading-snug">Effective minutes after breaks</p>
+                    </div>
+                </div>
+
+                <div class="tact-result-card bg-zinc-950 border border-emerald-800 rounded-2xl p-5 text-center mb-4">
+                    <div class="text-xs text-emerald-400 tracking-widest">TACT TIME</div>
+                    <div id="tact-result" class="font-mono text-5xl font-semibold text-emerald-400 mt-1 leading-none">—</div>
+                    <div class="text-sm text-zinc-400 mt-2">seconds per unit</div>
+                </div>
+
+                <div id="tact-comparison" class="hidden tact-input-card bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                        <div>
+                            <span class="text-zinc-400 text-xs">Your current WACT</span>
+                            <div id="tact-wact-value" class="font-mono text-xl font-semibold mt-0.5"></div>
+                        </div>
+                        <div class="sm:text-right">
+                            <span class="text-zinc-400 text-xs">vs TACT</span>
+                            <div id="tact-vs-wact" class="font-semibold text-lg mt-0.5"></div>
+                        </div>
+                    </div>
+                    <div id="tact-meets-demand" class="text-xs px-3 py-2 rounded-xl text-center font-medium"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex flex-wrap justify-end gap-3 flex-shrink-0">
+                <button onclick="closeTACTModal()" class="px-6 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 min-h-[44px]" title="Close without applying" aria-label="Close TACT calculator">Close</button>
+                <button onclick="applyTACTToStudy()" class="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold min-h-[44px]" title="Apply TACT values to the live study calculator" aria-label="Use TACT in study">Use in Study</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STAFFING & OR% CALCULATOR (separate from time study) ========== -->
+    <div id="or-rate-modal" onclick="if (event.target.id === 'or-rate-modal') closeORRateModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[520px] max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-start gap-3">
+                <div>
+                    <div class="text-amber-400 text-xs tracking-widest">STAFFING ANALYSIS</div>
+                    <div class="font-semibold text-xl">Staffing &amp; Operating Rate (OR%)</div>
+                </div>
+                <button onclick="closeORRateModal()" class="text-3xl text-zinc-400 hover:text-white leading-none min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close">×</button>
+            </div>
+            <div class="p-6">
+                <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
+                    Compare actual output to what your staffing level should have produced. Use this after a shift or period for staffing analysis — not during operator time study.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">TARGET RATE (per 1 operator)</label>
+                        <div class="flex items-center gap-x-2 min-w-0">
+                            <input id="or-target-rate" type="number" value="6" min="0.01" step="0.1" class="flex-1 min-w-0 bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg font-mono text-center min-h-[48px]" oninput="calculateORRate()">
+                            <select id="or-rate-unit" onchange="calculateORRate()" class="bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-3 py-3 text-sm min-h-[48px]">
+                                <option value="hour">units / hr</option>
+                                <option value="shift">units / shift</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="or-period-wrap">
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">PERIOD LENGTH (hours)</label>
+                        <input id="or-period-hours" type="number" value="8" min="0.1" step="0.25" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg font-mono text-center min-h-[48px]" oninput="calculateORRate()">
+                        <p class="text-[10px] text-zinc-500 mt-1">Used when rate is per hour</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">ACTUAL OPERATORS USED</label>
+                        <input id="or-actual-operators" type="number" value="3" min="1" step="1" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg font-mono text-center min-h-[48px]" oninput="calculateORRate()">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-zinc-400 mb-1">ACTUAL OUTPUT (units in period)</label>
+                        <input id="or-actual-output" type="number" value="150" min="0" step="1" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg font-mono text-center min-h-[48px]" oninput="calculateORRate()">
+                    </div>
+                </div>
+                <div class="bg-zinc-950 border border-amber-800/60 rounded-2xl p-5 text-center mb-4">
+                    <div class="text-xs text-amber-400 tracking-widest">OPERATING RATE (OR%)</div>
+                    <div id="or-rate-result" class="font-mono text-5xl font-semibold text-amber-400 mt-1">—</div>
+                    <div id="or-rate-interpretation" class="text-sm text-zinc-400 mt-2 leading-relaxed"></div>
+                </div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm space-y-2">
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="text-zinc-400">Expected output:</span>
+                        <span id="or-expected-output" class="font-mono font-semibold">—</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="text-zinc-400">Actual output:</span>
+                        <span id="or-actual-output-display" class="font-mono font-semibold">—</span>
+                    </div>
+                    <div id="or-rate-formula" class="text-xs text-zinc-500 font-mono pt-2 border-t border-zinc-800 leading-relaxed"></div>
+                </div>
+                <p class="text-[10px] text-zinc-500 mt-4 leading-relaxed">
+                    Example: 1 operator at 6 units/hr → 5 operators expect 30 units/hr. If 3 operators produce 150 units when expected was 112, OR% = 150 ÷ 112 × 100 ≈ 134%.
+                </p>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end">
+                <button onclick="closeORRateModal()" class="px-6 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 min-h-[44px]">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== COPY TEMPLATE MODAL ========== -->
+    <div id="copy-template-modal" onclick="if (event.target.id === 'copy-template-modal') closeCopyTemplateModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[520px]">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
+                <div>
+                    <div class="text-amber-400 text-xs tracking-widest">ELEMENT TEMPLATES</div>
+                    <div class="font-semibold text-xl">Copy Elements from Previous Study</div>
+                </div>
+                <button onclick="closeCopyTemplateModal()" class="text-3xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-6">
+                <div class="text-xs text-zinc-400 mb-4">Replaces current element list with names/structure from a previous study (observations and times are NOT copied).</div>
+                <div id="template-studies-list" class="max-h-[320px] overflow-auto space-y-2 text-sm"></div>
+                <div class="mt-4 text-[10px] text-zinc-500">Only element-based studies shown. Current area prioritized.</div>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end">
+                <button onclick="closeCopyTemplateModal()" class="px-6 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MANAGE CELLS & TMOs MODAL (ADMIN) ========== -->
+    <div id="manage-modal" onmousedown="onManageModalBackdropMouseDown(event)" onclick="onManageModalBackdropClick(event)" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" onmousedown="event.stopPropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[820px] max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-center flex-shrink-0">
+                <div>
+                    <div class="text-emerald-400 text-xs tracking-widest">ADMIN ONLY</div>
+                    <div class="font-semibold text-xl">Manage Cells, Areas &amp; TMOs</div>
+                </div>
+                <button onclick="closeManageModal()" class="text-3xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            
+            <div class="flex border-b border-zinc-700 px-6 flex-shrink-0">
+                <button onclick="switchManageTab('areas')" id="manage-tab-areas" class="px-5 py-3 font-semibold border-b-2 border-emerald-500 text-emerald-400">Areas / Cells</button>
+                <button onclick="switchManageTab('users')" id="manage-tab-users" class="px-5 py-3 font-semibold text-zinc-400 hover:text-white">TMO Users &amp; Assignments</button>
+            </div>
+            
+            <div id="manage-areas-tab" class="p-6 overflow-auto flex-1">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-semibold">Current Areas / Cells</div>
+                    <div class="text-xs text-zinc-500">Studies are linked to these areas. To delete studies, use the Studies page.</div>
+                </div>
+                <div id="manage-areas-list" class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                
+                <div class="bg-zinc-950 border border-zinc-700 rounded-2xl p-4">
+                    <div class="text-xs text-zinc-400 mb-2">ADD NEW AREA</div>
+                    <div class="flex gap-2">
+                        <input id="new-area-input" type="text" placeholder="e.g. ASM12" class="flex-1 bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-lg font-mono">
+                        <button onclick="addNewArea()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl">Add</button>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 mt-1.5">New area lets you assign TMOs and start studies for it.</div>
+                </div>
+            </div>
+            
+            <div id="manage-users-tab" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" class="p-6 overflow-auto flex-1 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-semibold">TMO Users &amp; Cell Assignments</div>
+                    <div class="text-xs text-zinc-500">One TMO per cell recommended</div>
+                </div>
+                <div id="manage-users-list" class="mb-6"></div>
+                
+                <div class="bg-zinc-950 border border-zinc-700 rounded-2xl p-4" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()">
+                    <div class="text-xs text-zinc-400 mb-3">ADD / ASSIGN NEW TMO</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-[10px] text-zinc-500">TMO Name</label>
+                            <input id="new-tmo-name" type="text" placeholder="TMO12" value="TMO12" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-3 py-2 text-sm font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-zinc-500">Assign to Cell</label>
+                            <select id="new-tmo-cell" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-3 py-2 text-sm"></select>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="addNewTMO(event)" class="w-full px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-sm min-h-[44px]">Add TMO Assignment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end flex-shrink-0">
+                <button onclick="closeManageModal()" class="px-6 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STANDARDIZATION DOCUMENT MODAL ========== -->
+    <div id="std-doc-modal" onclick="if (event.target.id === 'std-doc-modal') closeStandardizationDocument()" class="hidden fixed inset-0 bg-black/70 flex items-stretch sm:items-center justify-stretch sm:justify-center z-[100] p-0 sm:p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-none sm:rounded-3xl w-full max-w-none sm:max-w-[920px] max-h-[100dvh] sm:max-h-[92vh] h-[100dvh] sm:h-auto flex flex-col overflow-hidden">
+            <div class="std-doc-modal-chrome px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-700 flex flex-col sm:flex-row sm:justify-between sm:items-center flex-shrink-0 gap-3">
+                <div class="min-w-0">
+                    <div class="text-amber-400 text-xs tracking-widest">STANDARDIZATION</div>
+                    <div class="font-semibold text-lg sm:text-xl">Standardization Document</div>
+                    <p class="text-[11px] text-zinc-500 mt-1 leading-snug">Downloads a clean PDF you can save to your phone and print from anywhere.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button type="button" id="std-doc-download-btn" onclick="downloadStandardizationDocumentPdf()" class="flex-1 sm:flex-none flex items-center justify-center gap-x-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-sm min-h-[48px]" title="Download PDF file" aria-label="Download PDF">
+                        <i class="fa-solid fa-file-pdf"></i> <span>Download PDF</span>
+                    </button>
+                    <button type="button" onclick="closeStandardizationDocument()" class="text-3xl text-zinc-400 hover:text-white min-h-[48px] min-w-[48px] flex items-center justify-center shrink-0" title="Close document preview" aria-label="Close document preview">×</button>
+                </div>
+            </div>
+            <div id="std-doc-scroll" class="std-doc-scroll overflow-auto flex-1 p-3 sm:p-5">
+                <div id="std-doc-mobile-hint" class="std-doc-mobile-hint" role="note">
+                    <i class="fa-solid fa-mobile-screen-button text-amber-400 mr-1"></i>
+                    Mobile preview — scroll to read wide tables. Tap <strong class="text-zinc-200">Download PDF</strong> for the full print-ready file.
+                </div>
+                <div id="std-doc-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== METRIC INFO MODAL (shared helper) ========== -->
+    <div id="metric-info-modal" onclick="if (event.target.id === 'metric-info-modal') closeMetricInfo()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[110] p-4 sm:p-6">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-lg">
+            <div class="px-5 sm:px-8 py-4 sm:py-5 border-b border-zinc-700 flex justify-between items-start gap-3">
+                <div>
+                    <div class="text-emerald-400 text-xs tracking-widest">QUICK GUIDE</div>
+                    <div id="metric-info-title" class="font-semibold text-lg sm:text-xl mt-0.5"></div>
+                </div>
+                <button onclick="closeMetricInfo()" class="text-3xl text-zinc-400 hover:text-white leading-none min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close">×</button>
+            </div>
+            <div class="px-5 sm:px-8 py-5 sm:py-7">
+                <p id="metric-info-body"></p>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex justify-end">
+                <button onclick="closeMetricInfo()" class="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold min-h-[44px]">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== LINE BALANCE & REPORTING MODAL (ADMIN) ========== -->
+    <div id="line-report-modal" onclick="if (event.target.id === 'line-report-modal') closeLineReportModal()" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-zinc-700 flex justify-between items-start gap-3 flex-shrink-0">
+                <div>
+                    <div class="text-emerald-400 text-xs tracking-widest">LINE-LEVEL VIEW</div>
+                    <div class="font-semibold text-xl">Line Balance &amp; Reporting</div>
+                </div>
+                <button onclick="closeLineReportModal()" class="text-3xl text-zinc-400 hover:text-white leading-none min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close">×</button>
+            </div>
+            <div class="p-6 overflow-auto flex-1">
+                <div class="line-scope-note mb-4 px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs leading-relaxed">
+                    <i class="fa-solid fa-info-circle text-emerald-400 mr-1"></i>
+                    Individual studies capture timing at one station or element. Line-level TACT, balance, and performance metrics are calculated when multiple station studies are viewed together here.
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">SELECT AREA / LINE</label>
+                    <select id="line-report-area" onchange="renderLineReportContent()" class="w-full sm:w-64 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-sm min-h-[44px]"></select>
+                </div>
+                <div id="line-report-summary" class="text-xs text-zinc-500 mb-4"></div>
+                <div class="mb-5">
+                    <div class="text-xs font-medium text-zinc-400 mb-1 tracking-widest">WACT COMPARISON (sec/unit)</div>
+                    <div class="text-[10px] text-zinc-500 mb-2">Grouped by Station field from each study. Bars show WACT per study; longest bar in the area is line TACT. Red marker = customer Takt target.</div>
+                    <div id="line-report-chart" class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4"></div>
+                </div>
+                <div class="mb-4">
+                    <div class="text-xs font-medium text-zinc-400 mb-2 tracking-widest">STUDIES BY STATION</div>
+                    <div id="line-report-table" class="overflow-x-auto bg-zinc-950 border border-zinc-800 rounded-2xl"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-zinc-700 flex flex-wrap gap-2 justify-end flex-shrink-0">
+                <button onclick="exportLineReportCSV()" class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold min-h-[44px] flex items-center gap-x-2">
+                    <i class="fa-solid fa-file-csv"></i> Export Line Summary (CSV)
+                </button>
+                <button onclick="closeLineReportModal()" class="px-5 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 min-h-[44px]">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPT (external for maintainability) ========== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSrI1beYJwg8g6y4Bn9J8FSJyjxutszA6Z5A8FRqHcz1ET2n21X7V4+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="stdwork.js"></script>
+</body>
+</html>
